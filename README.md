@@ -38,7 +38,7 @@ Temperature-Converter/
 ├── package.json
 ├── package-lock.json
 ├── README.md
-└── assets/
+└── screenshot/
       └── screenshot.png
 ```
 
