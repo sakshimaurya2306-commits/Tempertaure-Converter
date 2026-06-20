@@ -86,7 +86,7 @@ The objective of this project is to build a desktop application that accurately 
 
 ## 👨‍💻 Author
 
-**Sakshi Maurya**
+Sakshi Ramakabal Maurya B.Tech in Information Technology at K.j. Somaiya institute of technology
 
 ---
 
