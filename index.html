@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temperature Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0c29 0%, #1a1040 50%, #24243e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(60px);
+      opacity: 0.6;
+    }
+    .orb1 { width: 400px; height: 400px; background: rgba(120,60,255,0.4); top: -120px; left: -100px; }
+    .orb2 { width: 300px; height: 300px; background: rgba(0,200,180,0.3); bottom: -80px; right: -60px; }
+    .orb3 { width: 220px; height: 220px; background: rgba(255,80,160,0.25); bottom: 100px; left: 35%; }
+
+    .popup {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 28px;
+      padding: 2.2rem 2rem;
+      width: 100%;
+      max-width: 620px;
+      box-shadow:
+        0 8px 60px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+      position: relative;
+      z-index: 10;
+      animation: popIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.82) translateY(28px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.8rem;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #ffffff 0%, #c4a8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .title-icon {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      background: rgba(120,60,255,0.25);
+      border: 1px solid rgba(120,60,255,0.45);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #c4a8ff;
+    }
+
+    .scales {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .scale-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 18px;
+      padding: 14px 11px 12px;
+      transition: all 0.2s ease;
+    }
+    .scale-card:hover { background: rgba(255,255,255,0.08); }
+    .scale-card.active-c { border-color: rgba(167,139,250,0.65); background: rgba(120,80,255,0.12); }
+    .scale-card.active-f { border-color: rgba(244,114,182,0.65); background: rgba(255,80,130,0.1); }
+    .scale-card.active-k { border-color: rgba(45,212,191,0.65); background: rgba(0,210,180,0.1); }
+
+    .sc-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      margin-bottom: 9px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .lc { color: #a78bfa; }
+    .lf { color: #f472b6; }
+    .lk { color: #2dd4bf; }
+
+    .sc-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .dc { background: #a78bfa; }
+    .df { background: #f472b6; }
+    .dk { background: #2dd4bf; }
+
+    .sc-inp {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 22px;
+      font-weight: 600;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+      padding: 2px 0 5px;
+      transition: border-color 0.2s;
+    }
+    .sc-inp::placeholder { color: rgba(255,255,255,0.18); font-weight: 400; }
+    .sc-inp::-webkit-inner-spin-button,
+    .sc-inp::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .scale-card.active-c .sc-inp { border-bottom-color: rgba(167,139,250,0.55); }
+    .scale-card.active-f .sc-inp { border-bottom-color: rgba(244,114,182,0.55); }
+    .scale-card.active-k .sc-inp { border-bottom-color: rgba(45,212,191,0.55); }
+
+    .sc-unit { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 5px; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      margin: 0 0 1.3rem;
+    }
+
+    .refs-label {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .refs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 1.4rem;
+    }
+
+    .ref-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 13px;
+      padding: 10px 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .ref-btn:hover {
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.18);
+      transform: translateY(-1px);
+    }
+    .ref-btn:active { transform: scale(0.97); }
+    .ref-name { font-size: 11px; color: rgba(255,255,255,0.38); margin-bottom: 3px; }
+    .ref-val  { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.72); }
+
+    .formula-strip {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 13px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .fm {
+      font-size: 11.5px;
+      color: rgba(255,255,255,0.32);
+      font-family: 'Courier New', monospace;
+    }
+    .fm span { color: rgba(180,160,255,0.7); }
+
+    footer {
+      text-align: center;
+      margin-top: 1.4rem;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      position: relative;
+      z-index: 10;
+    }
+
+    @media (max-width: 400px) {
+      .scales { grid-template-columns: 1fr; }
+      .refs   { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
+  <div class="popup">
+    <div class="header">
+      <div class="title">Temperature Converter</div>
+      <div class="title-icon">🌡</div>
+    </div>
+
+    <div class="scales">
+      <div class="scale-card active-c" id="card-c">
+        <div class="sc-label lc"><span class="sc-dot dc"></span>Celsius</div>
+        <input class="sc-inp" id="inp-c" type="number" placeholder="0" />
+        <div class="sc-unit">degree °C</div>
+      </div>
+      <div class="scale-card" id="card-f">
+        <div class="sc-label lf"><span class="sc-dot df"></span>Fahrenheit</div>
+        <input class="sc-inp" id="inp-f" type="number" placeholder="32" />
+        <div class="sc-unit">degree °F</div>
+      </div>
+      <div class="scale-card" id="card-k">
+        <div class="sc-label lk"><span class="sc-dot dk"></span>Kelvin</div>
+        <input class="sc-inp" id="inp-k" type="number" placeholder="273.15" />
+        <div class="sc-unit">kelvin K</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="refs-label">Quick reference</p>
+    <div class="refs">
+      <button class="ref-btn" onclick="setC(0)">
+        <div class="ref-name">Water freezing</div>
+        <div class="ref-val">0°C · 32°F · 273 K</div>
+      </button>
+      <button class="ref-btn" onclick="setC(100)">
+        <div class="ref-name">Water boiling</div>
+        <div class="ref-val">100°C · 212°F · 373 K</div>
+      </button>
+      <button class="ref-btn" onclick="setC(37)">
+        <div class="ref-name">Body temperature</div>
+        <div class="ref-val">37°C · 98.6°F · 310 K</div>
+      </button>
+      <button class="ref-btn" onclick="setC(-273.15)">
+        <div class="ref-name">Absolute zero</div>
+        <div class="ref-val">−273°C · −460°F · 0 K</div>
+      </button>
+    </div>
+
+    <div class="formula-strip">
+      <div class="fm"><span>°F</span> = (°C × 9/5) + 32 &nbsp;|&nbsp; <span>K</span> = °C + 273.15</div>
+      <div class="fm"><span>°C</span> = (°F − 32) × 5/9 &nbsp;|&nbsp; <span>°C</span> = K − 273.15</div>
+    </div>
+  </div>
+
+
+  <script>
+    const inpC = document.getElementById('inp-c');
+    const inpF = document.getElementById('inp-f');
+    const inpK = document.getElementById('inp-k');
+    const cC   = document.getElementById('card-c');
+    const cF   = document.getElementById('card-f');
+    const cK   = document.getElementById('card-k');
+
+    function clearActive() {
+      cC.className = 'scale-card';
+      cF.className = 'scale-card';
+      cK.className = 'scale-card';
+    }
+    function setActive(id) {
+      clearActive();
+      if (id === 'c') cC.className = 'scale-card active-c';
+      if (id === 'f') cF.className = 'scale-card active-f';
+      if (id === 'k') cK.className = 'scale-card active-k';
+    }
+
+    function r(v) { return parseFloat(v.toFixed(4)); }
+    function fromC(c) { return { f: r(c * 9/5 + 32), k: r(c + 273.15) }; }
+    function fromF(f) { const c = r((f - 32) * 5/9); return { c, k: r(c + 273.15) }; }
+    function fromK(k) { const c = r(k - 273.15); return { c, f: r(c * 9/5 + 32) }; }
+
+    function setC(val) {
+      inpC.value = val;
+      const { f, k } = fromC(val);
+      inpF.value = f;
+      inpK.value = k;
+      setActive('c');
+    }
+
+    inpC.addEventListener('input', () => {
+      setActive('c');
+      if (inpC.value === '' || inpC.value === '-') { inpF.value = ''; inpK.value = ''; return; }
+      const c = parseFloat(inpC.value);
+      if (!isNaN(c)) { const { f, k } = fromC(c); inpF.value = f; inpK.value = k; }
+    });
+    inpF.addEventListener('input', () => {
+      setActive('f');
+      if (inpF.value === '' || inpF.value === '-') { inpC.value = ''; inpK.value = ''; return; }
+      const f = parseFloat(inpF.value);
+      if (!isNaN(f)) { const { c, k } = fromF(f); inpC.value = c; inpK.value = k; }
+    });
+    inpK.addEventListener('input', () => {
+      setActive('k');
+      if (inpK.value === '' || inpK.value === '-') { inpC.value = ''; inpF.value = ''; return; }
+      const k = parseFloat(inpK.value);
+      if (!isNaN(k)) { const { c, f } = fromK(k); inpC.value = c; inpF.value = f; }
+    });
+
+    [inpC, inpF, inpK].forEach(inp => inp.addEventListener('focus', () => {
+      setActive(inp.id.replace('inp-', ''));
+    }));
+
+    setC(0);
+  </script>
+</body>
+</html>
